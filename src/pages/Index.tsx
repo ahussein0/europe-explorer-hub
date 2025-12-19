@@ -17,8 +17,11 @@ const Index = () => {
     gameState, 
     stats, 
     makeGuess, 
+    resetGame,
     shareResult,
-    maxGuesses 
+    maxGuesses,
+    canPlayMore,
+    gamesRemaining
   } = useGameState();
 
   const correctGuessedCountries = gameState.guesses
@@ -73,6 +76,8 @@ const Index = () => {
               origin={gameState.origin.name}
               destination={gameState.destination.name}
               onShare={shareResult}
+              onPlayAgain={canPlayMore ? resetGame : undefined}
+              gamesRemaining={gamesRemaining}
             />
           )}
 

@@ -20,6 +20,35 @@ interface Stats {
 }
 
 const MAX_GUESSES = 7;
+const MAX_DAILY_GAMES = 2;
+
+const getTodayKey = () => {
+  const today = new Date();
+  return `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+};
+
+const getDailyPlays = (): { date: string; gamesPlayed: number; gameSeeds: number[] } => {
+  try {
+    const saved = localStorage.getItem('eurojourneyDailyPlays');
+    if (saved) {
+      const data = JSON.parse(saved);
+      if (data.date === getTodayKey()) {
+        return data;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load daily plays', e);
+  }
+  return { date: getTodayKey(), gamesPlayed: 0, gameSeeds: [] };
+};
+
+const saveDailyPlays = (data: { date: string; gamesPlayed: number; gameSeeds: number[] }) => {
+  try {
+    localStorage.setItem('eurojourneyDailyPlays', JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to save daily plays', e);
+  }
+};
 
 // Simple BFS to find if a country is on ANY shortest path
 const findShortestPaths = (origin: string, destination: string): Set<string> => {
@@ -86,8 +115,11 @@ const saveStats = (stats: Stats) => {
 };
 
 export const useGameState = () => {
+  const [dailyPlays, setDailyPlays] = useState(getDailyPlays);
   const [gameState, setGameState] = useState<GameState>(() => {
-    const journey = getDailyJourney();
+    const plays = getDailyPlays();
+    const gameSeed = plays.gamesPlayed;
+    const journey = getDailyJourney(gameSeed);
     const pathCountries = findShortestPaths(journey.origin.name, journey.destination.name);
     return {
       origin: journey.origin,
@@ -100,6 +132,9 @@ export const useGameState = () => {
   });
 
   const [stats, setStats] = useState<Stats>(loadStats);
+
+  const canPlayMore = dailyPlays.gamesPlayed < MAX_DAILY_GAMES;
+  const gamesRemaining = MAX_DAILY_GAMES - dailyPlays.gamesPlayed;
 
   const makeGuess = useCallback((countryName: string) => {
     if (gameState.gameOver) return;
@@ -141,6 +176,17 @@ export const useGameState = () => {
     }));
 
     if (gameOver) {
+      // Update daily plays count
+      setDailyPlays(prev => {
+        const newPlays = {
+          ...prev,
+          gamesPlayed: prev.gamesPlayed + 1,
+          gameSeeds: [...prev.gameSeeds, prev.gamesPlayed]
+        };
+        saveDailyPlays(newPlays);
+        return newPlays;
+      });
+
       setStats(prev => {
         const newStats = {
           ...prev,
@@ -160,7 +206,10 @@ export const useGameState = () => {
   }, [gameState]);
 
   const resetGame = useCallback(() => {
-    const journey = getDailyJourney();
+    if (!canPlayMore) return;
+    
+    const newSeed = dailyPlays.gamesPlayed;
+    const journey = getDailyJourney(newSeed);
     const pathCountries = findShortestPaths(journey.origin.name, journey.destination.name);
     setGameState({
       origin: journey.origin,
@@ -170,7 +219,7 @@ export const useGameState = () => {
       won: false,
       correctPath: Array.from(pathCountries)
     });
-  }, []);
+  }, [canPlayMore, dailyPlays.gamesPlayed]);
 
   const shareResult = useCallback(() => {
     const { guesses, won, origin, destination } = gameState;
@@ -190,6 +239,9 @@ export const useGameState = () => {
     makeGuess,
     resetGame,
     shareResult,
-    maxGuesses: MAX_GUESSES
+    maxGuesses: MAX_GUESSES,
+    canPlayMore,
+    gamesRemaining,
+    maxDailyGames: MAX_DAILY_GAMES
   };
 };
