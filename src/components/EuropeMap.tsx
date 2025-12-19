@@ -101,11 +101,11 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
 
   return (
     <div className="w-full px-1">
-      <div className="relative rounded-lg overflow-hidden shadow-soft border border-border bg-card/50">
+      <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-lg overflow-hidden shadow-soft border border-border bg-card/50">
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{ center: [15, 54], scale: 550 }}
-          style={{ width: '100%', height: 'auto' }}
+          style={{ width: '100%', height: '100%' }}
           width={700}
           height={400}
         >
