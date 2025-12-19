@@ -46,13 +46,22 @@ const Index = () => {
               destinationCountry={gameState.destination.name}
               guessedCountries={gameState.guesses.map((g) => g.country)}
               correctCountries={correctGuessedCountries}
-              revealPath={gameState.gameOver ? gameState.correctPath : undefined}
+              revealPath={gameState.gameOver ? gameState.optimalPath : undefined}
             />
 
             {gameState.gameOver && (
               <div className="mt-3 p-3 bg-card/80 rounded-lg border border-border text-center animate-fade-in">
-                <p className="text-sm font-medium text-muted-foreground mb-1">Correct Path:</p>
-                <p className="text-base font-semibold text-primary">{gameState.correctPath.join(" → ")}</p>
+                <p className="text-sm font-medium text-muted-foreground mb-1">
+                  {gameState.won ? "You found it!" : "Correct Path:"}
+                </p>
+                <p className="text-base font-semibold text-primary">
+                  {gameState.optimalPath.join(" → ")}
+                </p>
+                {gameState.won && gameState.guesses.length > gameState.optimalPath.length && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    (Optimal route shown above)
+                  </p>
+                )}
               </div>
             )}
           </div>
