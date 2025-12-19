@@ -28,6 +28,8 @@ const Index = () => {
     .filter(g => g.isOnPath)
     .map(g => g.country);
 
+  const allGuessedCountries = gameState.guesses.map(g => g.country);
+
   return (
     <>
       <Helmet>
@@ -55,6 +57,7 @@ const Index = () => {
               originCountry={gameState.origin.name}
               destinationCountry={gameState.destination.name}
               correctCountries={correctGuessedCountries}
+              guessedCountries={allGuessedCountries}
             />
           </div>
 
