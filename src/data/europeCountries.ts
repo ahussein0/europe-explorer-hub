@@ -43,21 +43,59 @@ export const europeCountries: Country[] = [
   { name: "Iceland", code: "IS", neighbors: [], coordinates: { x: 80, y: 60 } },
 ];
 
-export const getRandomJourney = (): { origin: Country; destination: Country } => {
-  // Get countries with neighbors for valid paths
+// Calculate distance between two countries based on coordinates
+const getDistance = (a: Country, b: Country): number => {
+  const dx = a.coordinates.x - b.coordinates.x;
+  const dy = a.coordinates.y - b.coordinates.y;
+  return Math.sqrt(dx * dx + dy * dy);
+};
+
+// Check if two countries are neighbors
+const areNeighbors = (a: Country, b: Country): boolean => {
+  return a.neighbors.includes(b.name) || b.neighbors.includes(a.name);
+};
+
+// Minimum distance threshold for a good journey (about 1/3 of map width)
+const MIN_DISTANCE = 150;
+
+// Get valid country pairs that are far apart and not neighbors
+const getValidPairs = (): Array<{ origin: Country; destination: Country }> => {
   const countriesWithNeighbors = europeCountries.filter(c => c.neighbors.length > 0);
+  const validPairs: Array<{ origin: Country; destination: Country }> = [];
   
-  const originIndex = Math.floor(Math.random() * countriesWithNeighbors.length);
-  let destIndex = Math.floor(Math.random() * countriesWithNeighbors.length);
-  
-  while (destIndex === originIndex) {
-    destIndex = Math.floor(Math.random() * countriesWithNeighbors.length);
+  for (let i = 0; i < countriesWithNeighbors.length; i++) {
+    for (let j = i + 1; j < countriesWithNeighbors.length; j++) {
+      const a = countriesWithNeighbors[i];
+      const b = countriesWithNeighbors[j];
+      
+      // Skip if they're neighbors
+      if (areNeighbors(a, b)) continue;
+      
+      // Skip if they're too close
+      if (getDistance(a, b) < MIN_DISTANCE) continue;
+      
+      validPairs.push({ origin: a, destination: b });
+      validPairs.push({ origin: b, destination: a });
+    }
   }
   
-  return {
-    origin: countriesWithNeighbors[originIndex],
-    destination: countriesWithNeighbors[destIndex]
-  };
+  return validPairs;
+};
+
+export const getRandomJourney = (): { origin: Country; destination: Country } => {
+  const validPairs = getValidPairs();
+  
+  if (validPairs.length === 0) {
+    // Fallback to any two different countries
+    const countriesWithNeighbors = europeCountries.filter(c => c.neighbors.length > 0);
+    return {
+      origin: countriesWithNeighbors[0],
+      destination: countriesWithNeighbors[countriesWithNeighbors.length - 1]
+    };
+  }
+  
+  const randomIndex = Math.floor(Math.random() * validPairs.length);
+  return validPairs[randomIndex];
 };
 
 export const getDailyJourney = (): { origin: Country; destination: Country } => {
@@ -71,21 +109,20 @@ export const getDailyJourney = (): { origin: Country; destination: Country } => 
     hash = hash & hash;
   }
   
-  const countriesWithNeighbors = europeCountries.filter(c => c.neighbors.length > 0);
-  const originIndex = Math.abs(hash) % countriesWithNeighbors.length;
-  const destIndex = Math.abs(hash * 31) % countriesWithNeighbors.length;
+  const validPairs = getValidPairs();
   
-  if (originIndex === destIndex) {
+  if (validPairs.length === 0) {
+    // Fallback
+    const countriesWithNeighbors = europeCountries.filter(c => c.neighbors.length > 0);
     return {
-      origin: countriesWithNeighbors[originIndex],
-      destination: countriesWithNeighbors[(destIndex + 1) % countriesWithNeighbors.length]
+      origin: countriesWithNeighbors[0],
+      destination: countriesWithNeighbors[countriesWithNeighbors.length - 1]
     };
   }
   
-  return {
-    origin: countriesWithNeighbors[originIndex],
-    destination: countriesWithNeighbors[destIndex]
-  };
+  // Use hash to pick a consistent pair for the day
+  const pairIndex = Math.abs(hash) % validPairs.length;
+  return validPairs[pairIndex];
 };
 
 export const findCountryByName = (name: string): Country | undefined => {
