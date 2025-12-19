@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { ComposableMap, Geographies, Geography, Marker, Annotation } from 'react-simple-maps';
 
 const geoUrl = "https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/TopoJSON/europe.topojson";
 
@@ -15,126 +15,97 @@ const countryNameToCode: Record<string, string> = {
   'Iceland': 'IS', 'Bosnia and Herzegovina': 'BA', 'Kosovo': 'XK', 'Moldova': 'MD',
   'Russia': 'RU', 'Turkey': 'TR', 'Cyprus': 'CY', 'Malta': 'MT', 'Andorra': 'AD',
   'Monaco': 'MC', 'San Marino': 'SM', 'Vatican City': 'VA', 'Liechtenstein': 'LI',
-  // Also handle alternate names from the TopoJSON
   'Macedonia': 'MK', 'Czech Rep.': 'CZ', 'Czechia': 'CZ', 'Bosnia and Herz.': 'BA',
   'Bosnia': 'BA', 'UK': 'GB', 'Great Britain': 'GB',
 };
 
+// Country coordinates for labels
+const countryCoordinates: Record<string, [number, number]> = {
+  'Portugal': [-8.2, 39.5], 'Spain': [-3.7, 40.4], 'France': [2.3, 46.6], 'Belgium': [4.4, 50.8],
+  'Netherlands': [5.3, 52.1], 'Luxembourg': [6.1, 49.8], 'Germany': [10.5, 51.2], 'Switzerland': [8.2, 46.8],
+  'Austria': [14.6, 47.5], 'Italy': [12.6, 42.5], 'Slovenia': [14.5, 46.1], 'Croatia': [16.0, 45.2],
+  'Hungary': [19.5, 47.2], 'Slovakia': [19.7, 48.7], 'Czech Republic': [15.5, 49.8], 'Poland': [19.1, 52.0],
+  'Denmark': [9.5, 56.3], 'Sweden': [18.6, 60.1], 'Norway': [8.5, 61.0], 'Finland': [26.0, 64.0],
+  'Estonia': [25.0, 58.6], 'Latvia': [24.6, 57.0], 'Lithuania': [23.9, 55.2], 'Belarus': [27.6, 53.7],
+  'Ukraine': [31.2, 48.4], 'Romania': [25.0, 45.9], 'Bulgaria': [25.5, 42.7], 'Serbia': [21.0, 44.0],
+  'Montenegro': [19.3, 42.4], 'Albania': [20.2, 41.2], 'North Macedonia': [21.7, 41.5], 'Greece': [21.8, 39.1],
+  'Ireland': [-8.2, 53.4], 'United Kingdom': [-3.4, 54.0], 'Iceland': [-19.0, 65.0],
+  'Bosnia and Herzegovina': [17.8, 43.9], 'Kosovo': [20.9, 42.6], 'Moldova': [28.8, 47.4],
+  'Russia': [40.0, 56.0], 'Turkey': [32.0, 39.9], 'Cyprus': [33.4, 35.1], 'Malta': [14.4, 35.9],
+};
+
 interface EuropeMapProps {
-  highlightedCountries?: string[];
+  guessedCountries?: string[];
   correctCountries?: string[];
   originCountry?: string;
   destinationCountry?: string;
 }
 
 const EuropeMap: React.FC<EuropeMapProps> = memo(({
-  highlightedCountries = [],
+  guessedCountries = [],
   correctCountries = [],
   originCountry,
   destinationCountry
 }) => {
-  // Convert origin/destination to codes
   const originCode = originCountry ? countryNameToCode[originCountry] || originCountry : '';
   const destCode = destinationCountry ? countryNameToCode[destinationCountry] || destinationCountry : '';
-  
-  // Convert correct countries to codes
   const correctCodes = correctCountries.map(name => countryNameToCode[name] || name);
+  const guessedCodes = guessedCountries.map(name => countryNameToCode[name] || name);
 
   const getCountryStyle = (geo: any) => {
     const countryCode = geo.properties.ISO2;
     const countryName = geo.properties.NAME;
     
-    // Check by code or name
-    const isOrigin = countryCode === originCode || countryCode === originCountry || 
-                     countryName === originCountry;
-    const isDestination = countryCode === destCode || countryCode === destinationCountry || 
-                          countryName === destinationCountry;
+    const isOrigin = countryCode === originCode || countryCode === originCountry || countryName === originCountry;
+    const isDestination = countryCode === destCode || countryCode === destinationCountry || countryName === destinationCountry;
     const isCorrect = correctCodes.includes(countryCode) || correctCountries.includes(countryName);
+    const isGuessed = guessedCodes.includes(countryCode) || guessedCountries.includes(countryName);
 
-    // Correctly guessed countries on path
+    // Correctly guessed countries on path - green
     if (isCorrect) {
       return {
-        default: {
-          fill: 'hsl(175 50% 45%)',
-          stroke: 'hsl(175 60% 35%)',
-          strokeWidth: 1.5,
-          outline: 'none',
-        },
-        hover: {
-          fill: 'hsl(175 50% 45%)',
-          stroke: 'hsl(175 60% 35%)',
-          strokeWidth: 1.5,
-          outline: 'none',
-        },
-        pressed: {
-          fill: 'hsl(175 50% 45%)',
-          stroke: 'hsl(175 60% 35%)',
-          strokeWidth: 1.5,
-          outline: 'none',
-        },
+        default: { fill: 'hsl(175 50% 45%)', stroke: 'hsl(175 60% 35%)', strokeWidth: 1.5, outline: 'none' },
+        hover: { fill: 'hsl(175 50% 45%)', stroke: 'hsl(175 60% 35%)', strokeWidth: 1.5, outline: 'none' },
+        pressed: { fill: 'hsl(175 50% 45%)', stroke: 'hsl(175 60% 35%)', strokeWidth: 1.5, outline: 'none' },
       };
     }
 
-    // Origin and destination countries - bright orange
+    // Origin and destination - bright orange
     if (isOrigin || isDestination) {
       return {
-        default: {
-          fill: 'hsl(30 85% 55%)',
-          stroke: 'hsl(30 90% 40%)',
-          strokeWidth: 2,
-          outline: 'none',
-        },
-        hover: {
-          fill: 'hsl(30 85% 55%)',
-          stroke: 'hsl(30 90% 40%)',
-          strokeWidth: 2,
-          outline: 'none',
-        },
-        pressed: {
-          fill: 'hsl(30 85% 55%)',
-          stroke: 'hsl(30 90% 40%)',
-          strokeWidth: 2,
-          outline: 'none',
-        },
+        default: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
+        hover: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
+        pressed: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
       };
     }
 
-    // Default country style - non-interactive
+    // Guessed but not correct - muted red/pink
+    if (isGuessed) {
+      return {
+        default: { fill: 'hsl(0 60% 65%)', stroke: 'hsl(0 50% 50%)', strokeWidth: 1.5, outline: 'none' },
+        hover: { fill: 'hsl(0 60% 65%)', stroke: 'hsl(0 50% 50%)', strokeWidth: 1.5, outline: 'none' },
+        pressed: { fill: 'hsl(0 60% 65%)', stroke: 'hsl(0 50% 50%)', strokeWidth: 1.5, outline: 'none' },
+      };
+    }
+
+    // Default - light grey
     return {
-      default: {
-        fill: 'hsl(35 20% 88%)',
-        stroke: 'hsl(35 25% 75%)',
-        strokeWidth: 0.5,
-        outline: 'none',
-      },
-      hover: {
-        fill: 'hsl(35 20% 88%)',
-        stroke: 'hsl(35 25% 75%)',
-        strokeWidth: 0.5,
-        outline: 'none',
-      },
-      pressed: {
-        fill: 'hsl(35 20% 88%)',
-        stroke: 'hsl(35 25% 75%)',
-        strokeWidth: 0.5,
-        outline: 'none',
-      },
+      default: { fill: 'hsl(35 20% 88%)', stroke: 'hsl(35 25% 75%)', strokeWidth: 0.5, outline: 'none' },
+      hover: { fill: 'hsl(35 20% 88%)', stroke: 'hsl(35 25% 75%)', strokeWidth: 0.5, outline: 'none' },
+      pressed: { fill: 'hsl(35 20% 88%)', stroke: 'hsl(35 25% 75%)', strokeWidth: 0.5, outline: 'none' },
     };
   };
+
+  const originCoords = originCountry ? countryCoordinates[originCountry] : null;
+  const destCoords = destinationCountry ? countryCoordinates[destinationCountry] : null;
 
   return (
     <div className="w-full max-w-3xl mx-auto px-2">
       <div className="relative rounded-xl overflow-hidden shadow-soft border border-border bg-card/50">
         <ComposableMap
           projection="geoMercator"
-          projectionConfig={{
-            center: [15, 56],
-            scale: 600,
-          }}
-          style={{
-            width: '100%',
-            height: 'auto',
-          }}
+          projectionConfig={{ center: [15, 56], scale: 600 }}
+          style={{ width: '100%', height: 'auto' }}
           width={800}
           height={500}
         >
@@ -150,6 +121,58 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
               ))
             }
           </Geographies>
+          
+          {/* Origin label */}
+          {originCoords && (
+            <Annotation
+              subject={originCoords}
+              dx={-30}
+              dy={-20}
+              connectorProps={{
+                stroke: "hsl(30 90% 40%)",
+                strokeWidth: 2,
+                strokeLinecap: "round"
+              }}
+            >
+              <text
+                x={-4}
+                textAnchor="end"
+                alignmentBaseline="middle"
+                fill="hsl(30 90% 35%)"
+                fontSize={14}
+                fontWeight="bold"
+                style={{ textShadow: '0 1px 2px white, 0 -1px 2px white, 1px 0 2px white, -1px 0 2px white' }}
+              >
+                Origin
+              </text>
+            </Annotation>
+          )}
+          
+          {/* Destination label */}
+          {destCoords && (
+            <Annotation
+              subject={destCoords}
+              dx={30}
+              dy={-20}
+              connectorProps={{
+                stroke: "hsl(30 90% 40%)",
+                strokeWidth: 2,
+                strokeLinecap: "round"
+              }}
+            >
+              <text
+                x={4}
+                textAnchor="start"
+                alignmentBaseline="middle"
+                fill="hsl(30 90% 35%)"
+                fontSize={14}
+                fontWeight="bold"
+                style={{ textShadow: '0 1px 2px white, 0 -1px 2px white, 1px 0 2px white, -1px 0 2px white' }}
+              >
+                Destination
+              </text>
+            </Annotation>
+          )}
         </ComposableMap>
       </div>
       
@@ -157,11 +180,15 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
       <div className="flex justify-center gap-4 mt-3 text-xs md:text-sm">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
-          <span className="text-muted-foreground">Start / End</span>
+          <span className="text-muted-foreground">Origin / Destination</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(175 50% 45%)' }} />
-          <span className="text-muted-foreground">Found</span>
+          <span className="text-muted-foreground">Correct</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 65%)' }} />
+          <span className="text-muted-foreground">Guessed</span>
         </div>
       </div>
     </div>
