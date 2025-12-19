@@ -11,6 +11,7 @@ interface GameCompleteProps {
   destination: string;
   onPlayAgain?: () => void;
   onShare: () => void;
+  gamesRemaining?: number;
 }
 
 const GameComplete: React.FC<GameCompleteProps> = ({
@@ -20,7 +21,8 @@ const GameComplete: React.FC<GameCompleteProps> = ({
   origin,
   destination,
   onPlayAgain,
-  onShare
+  onShare,
+  gamesRemaining = 0
 }) => {
   useEffect(() => {
     if (won) {
@@ -69,14 +71,18 @@ const GameComplete: React.FC<GameCompleteProps> = ({
           <Share2 className="w-4 h-4" />
           Share
         </button>
-        {onPlayAgain && (
+        {onPlayAgain ? (
           <button
             onClick={onPlayAgain}
             className="flex items-center gap-2 px-5 py-3 rounded-lg font-medium border border-border bg-card hover:bg-muted transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
-            New Game
+            Play Again ({gamesRemaining} left)
           </button>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Come back tomorrow for more journeys!
+          </p>
         )}
       </div>
     </div>

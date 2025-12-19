@@ -98,10 +98,10 @@ export const getRandomJourney = (): { origin: Country; destination: Country } =>
   return validPairs[randomIndex];
 };
 
-export const getDailyJourney = (): { origin: Country; destination: Country } => {
-  // Use the date as a seed for consistent daily challenges
+export const getDailyJourney = (gameNumber: number = 0): { origin: Country; destination: Country } => {
+  // Use the date + game number as a seed for consistent daily challenges
   const today = new Date();
-  const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+  const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}-${gameNumber}`;
   let hash = 0;
   for (let i = 0; i < dateString.length; i++) {
     const char = dateString.charCodeAt(i);
