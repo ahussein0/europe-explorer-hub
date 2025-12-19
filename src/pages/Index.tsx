@@ -21,7 +21,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>EuroBound - Daily European Geography Game</title>
+        <title>Eurostepping - Daily European Geography Game</title>
         <meta
           name="description"
           content="Guess the path between European countries in this daily geography puzzle game. Test your knowledge of European borders!"
@@ -33,7 +33,7 @@ const Index = () => {
 
         <main className="flex-1 flex flex-col items-center px-4 py-6">
           <div className="text-center mb-6 animate-fade-in">
-            <h1 className="game-title mb-2">euro-stepping...</h1>
+            <h1 className="game-title mb-2">Eurostep through..</h1>
             <p className="game-subtitle">
               to go from <span className="origin-highlight">{gameState.origin.name}</span> to{" "}
               <span className="destination-highlight">{gameState.destination.name}</span>
@@ -48,13 +48,11 @@ const Index = () => {
               correctCountries={correctGuessedCountries}
               revealPath={gameState.gameOver ? gameState.correctPath : undefined}
             />
-            
+
             {gameState.gameOver && (
               <div className="mt-3 p-3 bg-card/80 rounded-lg border border-border text-center animate-fade-in">
                 <p className="text-sm font-medium text-muted-foreground mb-1">Correct Path:</p>
-                <p className="text-base font-semibold text-primary">
-                  {gameState.correctPath.join(" → ")}
-                </p>
+                <p className="text-base font-semibold text-primary">{gameState.correctPath.join(" → ")}</p>
               </div>
             )}
           </div>
