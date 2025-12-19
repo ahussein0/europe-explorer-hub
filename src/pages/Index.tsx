@@ -33,7 +33,7 @@ const Index = () => {
 
         <main className="flex-1 flex flex-col items-center px-4 py-6">
           <div className="text-center mb-6 animate-fade-in">
-            <h1 className="game-title mb-2">europstepping...</h1>
+            <h1 className="game-title mb-2">euro-stepping...</h1>
             <p className="game-subtitle">
               to go from <span className="origin-highlight">{gameState.origin.name}</span> to{" "}
               <span className="destination-highlight">{gameState.destination.name}</span>
