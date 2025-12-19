@@ -11,7 +11,7 @@ const Header: React.FC<HeaderProps> = ({ onStatsClick, onHelpClick }) => {
     <header className="w-full px-4 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
         <Globe className="w-7 h-7 text-primary" />
-        <span className="logo-text">eurostepping</span>
+        <span className="logo-text">Eurostepping</span>
       </div>
 
       <div className="flex items-center gap-2">
