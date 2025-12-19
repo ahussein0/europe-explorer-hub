@@ -51,10 +51,7 @@ const Index = () => {
             <EuropeMap
               originCountry={gameState.origin.code}
               destinationCountry={gameState.destination.code}
-              correctCountries={correctGuessedCountries.map(name => {
-                const country = gameState.correctPath.find(c => c === name);
-                return country ? name.substring(0, 2).toUpperCase() : '';
-              })}
+              correctCountries={correctGuessedCountries}
             />
           </div>
 
