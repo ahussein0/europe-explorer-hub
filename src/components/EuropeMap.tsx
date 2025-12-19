@@ -1,8 +1,24 @@
 import React, { memo } from 'react';
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps';
-import { nameToCountryCode } from '@/data/europeCountries';
+import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
 
 const geoUrl = "https://raw.githubusercontent.com/leakyMirror/map-of-europe/master/TopoJSON/europe.topojson";
+
+// Map of country names to ISO2 codes for matching
+const countryNameToCode: Record<string, string> = {
+  'Portugal': 'PT', 'Spain': 'ES', 'France': 'FR', 'Belgium': 'BE', 'Netherlands': 'NL',
+  'Luxembourg': 'LU', 'Germany': 'DE', 'Switzerland': 'CH', 'Austria': 'AT', 'Italy': 'IT',
+  'Slovenia': 'SI', 'Croatia': 'HR', 'Hungary': 'HU', 'Slovakia': 'SK', 'Czech Republic': 'CZ',
+  'Poland': 'PL', 'Denmark': 'DK', 'Sweden': 'SE', 'Norway': 'NO', 'Finland': 'FI',
+  'Estonia': 'EE', 'Latvia': 'LV', 'Lithuania': 'LT', 'Belarus': 'BY', 'Ukraine': 'UA',
+  'Romania': 'RO', 'Bulgaria': 'BG', 'Serbia': 'RS', 'Montenegro': 'ME', 'Albania': 'AL',
+  'North Macedonia': 'MK', 'Greece': 'GR', 'Ireland': 'IE', 'United Kingdom': 'GB',
+  'Iceland': 'IS', 'Bosnia and Herzegovina': 'BA', 'Kosovo': 'XK', 'Moldova': 'MD',
+  'Russia': 'RU', 'Turkey': 'TR', 'Cyprus': 'CY', 'Malta': 'MT', 'Andorra': 'AD',
+  'Monaco': 'MC', 'San Marino': 'SM', 'Vatican City': 'VA', 'Liechtenstein': 'LI',
+  // Also handle alternate names from the TopoJSON
+  'Macedonia': 'MK', 'Czech Rep.': 'CZ', 'Czechia': 'CZ', 'Bosnia and Herz.': 'BA',
+  'Bosnia': 'BA', 'UK': 'GB', 'Great Britain': 'GB',
+};
 
 interface EuropeMapProps {
   highlightedCountries?: string[];
@@ -17,20 +33,25 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
   originCountry,
   destinationCountry
 }) => {
-  // Convert country names to codes for comparison
-  const correctCodes = correctCountries.map(name => nameToCountryCode[name] || name);
-  const highlightedCodes = highlightedCountries.map(name => nameToCountryCode[name] || name);
+  // Convert origin/destination to codes
+  const originCode = originCountry ? countryNameToCode[originCountry] || originCountry : '';
+  const destCode = destinationCountry ? countryNameToCode[destinationCountry] || destinationCountry : '';
+  
+  // Convert correct countries to codes
+  const correctCodes = correctCountries.map(name => countryNameToCode[name] || name);
 
   const getCountryStyle = (geo: any) => {
     const countryCode = geo.properties.ISO2;
     const countryName = geo.properties.NAME;
     
     // Check by code or name
-    const isOrigin = countryCode === originCountry || countryName === originCountry;
-    const isDestination = countryCode === destinationCountry || countryName === destinationCountry;
+    const isOrigin = countryCode === originCode || countryCode === originCountry || 
+                     countryName === originCountry;
+    const isDestination = countryCode === destCode || countryCode === destinationCountry || 
+                          countryName === destinationCountry;
     const isCorrect = correctCodes.includes(countryCode) || correctCountries.includes(countryName);
-    const isHighlighted = highlightedCodes.includes(countryCode) || highlightedCountries.includes(countryName);
 
+    // Correctly guessed countries on path
     if (isCorrect) {
       return {
         default: {
@@ -38,23 +59,23 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
           stroke: 'hsl(175 60% 35%)',
           strokeWidth: 1.5,
           outline: 'none',
-          transition: 'all 0.3s ease',
         },
         hover: {
-          fill: 'hsl(175 55% 50%)',
-          stroke: 'hsl(175 60% 30%)',
-          strokeWidth: 2,
+          fill: 'hsl(175 50% 45%)',
+          stroke: 'hsl(175 60% 35%)',
+          strokeWidth: 1.5,
           outline: 'none',
         },
         pressed: {
-          fill: 'hsl(175 50% 40%)',
-          stroke: 'hsl(175 60% 30%)',
-          strokeWidth: 2,
+          fill: 'hsl(175 50% 45%)',
+          stroke: 'hsl(175 60% 35%)',
+          strokeWidth: 1.5,
           outline: 'none',
         },
       };
     }
 
+    // Origin and destination countries - bright orange
     if (isOrigin || isDestination) {
       return {
         default: {
@@ -62,111 +83,85 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
           stroke: 'hsl(30 90% 40%)',
           strokeWidth: 2,
           outline: 'none',
-          transition: 'all 0.3s ease',
         },
         hover: {
-          fill: 'hsl(30 90% 60%)',
-          stroke: 'hsl(30 90% 35%)',
-          strokeWidth: 2.5,
+          fill: 'hsl(30 85% 55%)',
+          stroke: 'hsl(30 90% 40%)',
+          strokeWidth: 2,
           outline: 'none',
         },
         pressed: {
-          fill: 'hsl(30 85% 50%)',
-          stroke: 'hsl(30 90% 35%)',
-          strokeWidth: 2.5,
+          fill: 'hsl(30 85% 55%)',
+          stroke: 'hsl(30 90% 40%)',
+          strokeWidth: 2,
           outline: 'none',
         },
       };
     }
 
-    if (isHighlighted) {
-      return {
-        default: {
-          fill: 'hsl(175 50% 85%)',
-          stroke: 'hsl(175 45% 65%)',
-          strokeWidth: 1,
-          outline: 'none',
-          transition: 'all 0.3s ease',
-        },
-        hover: {
-          fill: 'hsl(175 55% 80%)',
-          stroke: 'hsl(175 50% 55%)',
-          strokeWidth: 1.5,
-          outline: 'none',
-        },
-        pressed: {
-          fill: 'hsl(175 50% 75%)',
-          stroke: 'hsl(175 50% 55%)',
-          strokeWidth: 1.5,
-          outline: 'none',
-        },
-      };
-    }
-
-    // Default country style
+    // Default country style - non-interactive
     return {
       default: {
         fill: 'hsl(35 20% 88%)',
         stroke: 'hsl(35 25% 75%)',
         strokeWidth: 0.5,
         outline: 'none',
-        transition: 'all 0.3s ease',
       },
       hover: {
-        fill: 'hsl(35 25% 82%)',
-        stroke: 'hsl(35 30% 65%)',
-        strokeWidth: 1,
+        fill: 'hsl(35 20% 88%)',
+        stroke: 'hsl(35 25% 75%)',
+        strokeWidth: 0.5,
         outline: 'none',
       },
       pressed: {
-        fill: 'hsl(35 20% 80%)',
-        stroke: 'hsl(35 30% 65%)',
-        strokeWidth: 1,
+        fill: 'hsl(35 20% 88%)',
+        stroke: 'hsl(35 25% 75%)',
+        strokeWidth: 0.5,
         outline: 'none',
       },
     };
   };
 
   return (
-    <div className="map-container relative">
-      <div className="map-glow" />
-      <div className="relative z-10 rounded-xl overflow-hidden shadow-soft border border-border bg-card/50">
+    <div className="w-full max-w-3xl mx-auto px-2">
+      <div className="relative rounded-xl overflow-hidden shadow-soft border border-border bg-card/50">
         <ComposableMap
           projection="geoMercator"
           projectionConfig={{
-            center: [15, 54],
-            scale: 700,
+            center: [15, 56],
+            scale: 600,
           }}
           style={{
             width: '100%',
             height: 'auto',
           }}
+          width={800}
+          height={500}
         >
-          <ZoomableGroup center={[15, 54]} zoom={1} minZoom={0.8} maxZoom={3}>
-            <Geographies geography={geoUrl}>
-              {({ geographies }) =>
-                geographies.map((geo) => (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    style={getCountryStyle(geo)}
-                  />
-                ))
-              }
-            </Geographies>
-          </ZoomableGroup>
+          <Geographies geography={geoUrl}>
+            {({ geographies }) =>
+              geographies.map((geo) => (
+                <Geography
+                  key={geo.rsmKey}
+                  geography={geo}
+                  style={getCountryStyle(geo)}
+                  tabIndex={-1}
+                />
+              ))
+            }
+          </Geographies>
         </ComposableMap>
       </div>
       
       {/* Legend */}
-      <div className="flex justify-center gap-4 mt-4 text-sm">
+      <div className="flex justify-center gap-4 mt-3 text-xs md:text-sm">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
-          <span className="text-muted-foreground">Origin/Destination</span>
+          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
+          <span className="text-muted-foreground">Start / End</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 rounded" style={{ backgroundColor: 'hsl(175 50% 45%)' }} />
-          <span className="text-muted-foreground">Found on path</span>
+          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(175 50% 45%)' }} />
+          <span className="text-muted-foreground">Found</span>
         </div>
       </div>
     </div>
