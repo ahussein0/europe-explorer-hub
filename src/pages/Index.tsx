@@ -40,7 +40,7 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="w-full mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <div className="w-full mb-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <EuropeMap
               originCountry={gameState.origin.name}
               destinationCountry={gameState.destination.name}
@@ -48,6 +48,15 @@ const Index = () => {
               correctCountries={correctGuessedCountries}
               revealPath={gameState.gameOver ? gameState.correctPath : undefined}
             />
+            
+            {gameState.gameOver && (
+              <div className="mt-3 p-3 bg-card/80 rounded-lg border border-border text-center animate-fade-in">
+                <p className="text-sm font-medium text-muted-foreground mb-1">Correct Path:</p>
+                <p className="text-base font-semibold text-primary">
+                  {gameState.correctPath.join(" → ")}
+                </p>
+              </div>
+            )}
           </div>
 
           {!gameState.gameOver ? (
