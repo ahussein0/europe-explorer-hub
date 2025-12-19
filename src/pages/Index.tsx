@@ -21,7 +21,7 @@ const Index = () => {
   return (
     <>
       <Helmet>
-        <title>EuroJourny - Daily European Geography Game</title>
+        <title>EuroBound - Daily European Geography Game</title>
         <meta
           name="description"
           content="Guess the path between European countries in this daily geography puzzle game. Test your knowledge of European borders!"
@@ -40,12 +40,11 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="w-full max-w-2xl mx-auto mb-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          <div className="w-full mb-6 animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <EuropeMap
               originCountry={gameState.origin.name}
               destinationCountry={gameState.destination.name}
               correctCountries={correctGuessedCountries}
-              guessedCountries={gameState.guesses.map(g => g.country)}
             />
           </div>
 
