@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { getCountryNames } from '@/data/europeCountries';
 
 interface GuessInputProps {
@@ -19,7 +19,7 @@ const GuessInput: React.FC<GuessInputProps> = ({
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
-  const countryNames = getCountryNames();
+  const countryNames = useMemo(() => getCountryNames(), []);
 
   useEffect(() => {
     if (value.length > 0) {
@@ -75,7 +75,7 @@ const GuessInput: React.FC<GuessInputProps> = ({
             value={value}
             onChange={(e) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
-            onFocus={() => value && setSuggestions.length > 0 && setShowSuggestions(true)}
+            onFocus={() => value && suggestions.length > 0 && setShowSuggestions(true)}
             onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             placeholder="Enter a country..."
             disabled={disabled}
