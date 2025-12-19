@@ -15,9 +15,6 @@ const Header: React.FC<HeaderProps> = ({ onStatsClick, onHelpClick }) => {
       </div>
 
       <div className="flex items-center gap-2">
-        <span className="px-3 py-1 text-sm font-medium rounded-full border border-border text-muted-foreground">
-          beta
-        </span>
         <button onClick={onStatsClick} className="icon-button" aria-label="Statistics">
           <BarChart3 className="w-5 h-5" />
         </button>
