@@ -9,6 +9,7 @@ interface GameState {
   gameOver: boolean;
   won: boolean;
   correctPath: string[];
+  optimalPath: string[];
 }
 
 interface Stats {
@@ -50,9 +51,10 @@ const saveDailyPlays = (data: { date: string; gamesPlayed: number; gameSeeds: nu
   }
 };
 
-// Simple BFS to find if a country is on ANY shortest path
-const findShortestPaths = (origin: string, destination: string): Set<string> => {
+// Simple BFS to find if a country is on ANY shortest path and get one optimal path
+const findShortestPaths = (origin: string, destination: string): { countriesOnPath: Set<string>; optimalPath: string[] } => {
   const countriesOnPath = new Set<string>();
+  let optimalPath: string[] = [];
   
   // BFS from origin
   const queue: { country: string; path: string[] }[] = [{ country: origin, path: [origin] }];
@@ -68,6 +70,9 @@ const findShortestPaths = (origin: string, destination: string): Set<string> => 
       if (path.length <= shortestLength) {
         shortestLength = path.length;
         path.forEach(c => countriesOnPath.add(c));
+        if (optimalPath.length === 0) {
+          optimalPath = [...path];
+        }
       }
       continue;
     }
@@ -85,7 +90,7 @@ const findShortestPaths = (origin: string, destination: string): Set<string> => 
     }
   }
   
-  return countriesOnPath;
+  return { countriesOnPath, optimalPath };
 };
 
 const loadStats = (): Stats => {
@@ -120,14 +125,15 @@ export const useGameState = () => {
     const plays = getDailyPlays();
     const gameSeed = plays.gamesPlayed;
     const journey = getDailyJourney(gameSeed);
-    const pathCountries = findShortestPaths(journey.origin.name, journey.destination.name);
+    const { countriesOnPath, optimalPath } = findShortestPaths(journey.origin.name, journey.destination.name);
     return {
       origin: journey.origin,
       destination: journey.destination,
       guesses: [],
       gameOver: false,
       won: false,
-      correctPath: Array.from(pathCountries)
+      correctPath: Array.from(countriesOnPath),
+      optimalPath
     };
   });
 
@@ -210,14 +216,15 @@ export const useGameState = () => {
     
     const newSeed = dailyPlays.gamesPlayed;
     const journey = getDailyJourney(newSeed);
-    const pathCountries = findShortestPaths(journey.origin.name, journey.destination.name);
+    const { countriesOnPath, optimalPath } = findShortestPaths(journey.origin.name, journey.destination.name);
     setGameState({
       origin: journey.origin,
       destination: journey.destination,
       guesses: [],
       gameOver: false,
       won: false,
-      correctPath: Array.from(pathCountries)
+      correctPath: Array.from(countriesOnPath),
+      optimalPath
     });
   }, [canPlayMore, dailyPlays.gamesPlayed]);
 
