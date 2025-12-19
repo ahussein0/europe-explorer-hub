@@ -50,10 +50,10 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="w-full max-w-2xl mb-8 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <div className="w-full mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <EuropeMap
-              originCountry={gameState.origin.code}
-              destinationCountry={gameState.destination.code}
+              originCountry={gameState.origin.name}
+              destinationCountry={gameState.destination.name}
               correctCountries={correctGuessedCountries}
             />
           </div>
