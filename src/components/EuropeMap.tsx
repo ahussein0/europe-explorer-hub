@@ -100,14 +100,14 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
   const destCoords = destinationCountry ? countryCoordinates[destinationCountry] : null;
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-2">
-      <div className="relative rounded-xl overflow-hidden shadow-soft border border-border bg-card/50">
+    <div className="w-full px-1">
+      <div className="relative rounded-lg overflow-hidden shadow-soft border border-border bg-card/50">
         <ComposableMap
           projection="geoMercator"
-          projectionConfig={{ center: [15, 56], scale: 600 }}
+          projectionConfig={{ center: [15, 54], scale: 550 }}
           style={{ width: '100%', height: 'auto' }}
-          width={800}
-          height={500}
+          width={700}
+          height={400}
         >
           <Geographies geography={geoUrl}>
             {({ geographies }) =>
@@ -177,17 +177,17 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
       </div>
       
       {/* Legend */}
-      <div className="flex justify-center gap-4 mt-3 text-xs md:text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
-          <span className="text-muted-foreground">Origin / Destination</span>
+      <div className="flex justify-center gap-3 mt-2 text-xs">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
+          <span className="text-muted-foreground">Origin/Dest</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(175 50% 45%)' }} />
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(175 50% 45%)' }} />
           <span className="text-muted-foreground">Correct</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 md:w-4 md:h-4 rounded" style={{ backgroundColor: 'hsl(0 60% 65%)' }} />
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(0 60% 65%)' }} />
           <span className="text-muted-foreground">Guessed</span>
         </div>
       </div>
