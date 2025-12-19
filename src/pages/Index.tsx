@@ -46,10 +46,10 @@ const Index = () => {
               destinationCountry={gameState.destination.name}
               guessedCountries={gameState.guesses.map((g) => g.country)}
               correctCountries={correctGuessedCountries}
-              revealPath={gameState.gameOver ? gameState.optimalPath : undefined}
+              revealPath={gameState.gameOver ? gameState.optimalPath ?? gameState.correctPath : undefined}
             />
 
-            {gameState.gameOver && (
+            {gameState.gameOver && gameState.optimalPath && (
               <div className="mt-3 p-3 bg-card/80 rounded-lg border border-border text-center animate-fade-in">
                 <p className="text-sm font-medium text-muted-foreground mb-1">
                   {gameState.won ? "You found it!" : "Correct Path:"}
