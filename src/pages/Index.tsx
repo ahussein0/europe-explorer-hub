@@ -44,6 +44,7 @@ const Index = () => {
             <EuropeMap
               originCountry={gameState.origin.name}
               destinationCountry={gameState.destination.name}
+              guessedCountries={gameState.guesses.map((g) => g.country)}
               correctCountries={correctGuessedCountries}
             />
           </div>
