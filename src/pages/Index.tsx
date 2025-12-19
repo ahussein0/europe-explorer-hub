@@ -46,6 +46,7 @@ const Index = () => {
               destinationCountry={gameState.destination.name}
               guessedCountries={gameState.guesses.map((g) => g.country)}
               correctCountries={correctGuessedCountries}
+              revealPath={gameState.gameOver ? gameState.correctPath : undefined}
             />
           </div>
 

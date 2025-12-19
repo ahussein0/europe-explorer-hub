@@ -39,18 +39,21 @@ interface EuropeMapProps {
   correctCountries?: string[];
   originCountry?: string;
   destinationCountry?: string;
+  revealPath?: string[];
 }
 
 const EuropeMap: React.FC<EuropeMapProps> = memo(({
   guessedCountries = [],
   correctCountries = [],
   originCountry,
-  destinationCountry
+  destinationCountry,
+  revealPath
 }) => {
   const originCode = originCountry ? countryNameToCode[originCountry] || originCountry : '';
   const destCode = destinationCountry ? countryNameToCode[destinationCountry] || destinationCountry : '';
   const correctCodes = correctCountries.map(name => countryNameToCode[name] || name);
   const guessedCodes = guessedCountries.map(name => countryNameToCode[name] || name);
+  const revealCodes = revealPath ? revealPath.map(name => countryNameToCode[name] || name) : [];
 
   const getCountryStyle = (geo: any) => {
     const countryCode = geo.properties.ISO2;
@@ -60,6 +63,7 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
     const isDestination = countryCode === destCode || countryCode === destinationCountry || countryName === destinationCountry;
     const isCorrect = correctCodes.includes(countryCode) || correctCountries.includes(countryName);
     const isGuessed = guessedCodes.includes(countryCode) || guessedCountries.includes(countryName);
+    const isOnRevealedPath = revealCodes.includes(countryCode) || (revealPath && revealPath.includes(countryName));
 
     // Correctly guessed countries on path - green
     if (isCorrect) {
@@ -76,6 +80,15 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
         default: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
         hover: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
         pressed: { fill: 'hsl(30 85% 55%)', stroke: 'hsl(30 90% 40%)', strokeWidth: 2, outline: 'none' },
+      };
+    }
+
+    // Revealed path (game over) - teal/cyan to show correct path
+    if (isOnRevealedPath) {
+      return {
+        default: { fill: 'hsl(190 70% 50%)', stroke: 'hsl(190 80% 35%)', strokeWidth: 2, outline: 'none' },
+        hover: { fill: 'hsl(190 70% 50%)', stroke: 'hsl(190 80% 35%)', strokeWidth: 2, outline: 'none' },
+        pressed: { fill: 'hsl(190 70% 50%)', stroke: 'hsl(190 80% 35%)', strokeWidth: 2, outline: 'none' },
       };
     }
 
@@ -177,7 +190,7 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
       </div>
       
       {/* Legend */}
-      <div className="flex justify-center gap-3 mt-2 text-xs">
+      <div className="flex justify-center flex-wrap gap-3 mt-2 text-xs">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(30 85% 55%)' }} />
           <span className="text-muted-foreground">Origin/Dest</span>
@@ -190,6 +203,12 @@ const EuropeMap: React.FC<EuropeMapProps> = memo(({
           <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(0 60% 65%)' }} />
           <span className="text-muted-foreground">Guessed</span>
         </div>
+        {revealPath && (
+          <div className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: 'hsl(190 70% 50%)' }} />
+            <span className="text-muted-foreground">Correct Path</span>
+          </div>
+        )}
       </div>
     </div>
   );
