@@ -162,12 +162,15 @@ export const useGameState = () => {
 
     const newGuesses = [...gameState.guesses, newGuess];
     
-    // Check if all path countries have been found
+    // Check if player has found a complete path from origin to destination
+    // They need to guess all countries on the optimal path EXCEPT the origin (which is given)
     const guessedPathCountries = newGuesses
       .filter(g => g.isOnPath)
       .map(g => g.country);
     
-    const allPathFound = gameState.correctPath.every(c => 
+    // Player must guess all countries on the optimal path except the origin
+    const countriesNeededToGuess = gameState.optimalPath.filter(c => c !== gameState.origin.name);
+    const allPathFound = countriesNeededToGuess.every(c => 
       guessedPathCountries.includes(c)
     );
     
