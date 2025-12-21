@@ -53,44 +53,50 @@ const saveDailyPlays = (data: { date: string; gamesPlayed: number; gameSeeds: nu
 
 // Simple BFS to find if a country is on ANY shortest path and get one optimal path
 const findShortestPaths = (origin: string, destination: string): { countriesOnPath: Set<string>; optimalPath: string[] } => {
-  const countriesOnPath = new Set<string>();
-  let optimalPath: string[] = [];
-  
-  // BFS from origin
-  const queue: { country: string; path: string[] }[] = [{ country: origin, path: [origin] }];
-  const visited = new Set<string>();
-  let shortestLength = Infinity;
-  
-  while (queue.length > 0) {
-    const { country, path } = queue.shift()!;
-    
-    if (path.length > shortestLength) continue;
-    
-    if (country === destination) {
-      if (path.length <= shortestLength) {
-        shortestLength = path.length;
-        path.forEach(c => countriesOnPath.add(c));
-        if (optimalPath.length === 0) {
-          optimalPath = [...path];
-        }
-      }
-      continue;
-    }
-    
-    if (visited.has(country) && path.length > 1) continue;
-    visited.add(country);
-    
-    const countryData = europeCountries.find(c => c.name === country);
-    if (!countryData) continue;
-    
-    for (const neighbor of countryData.neighbors) {
-      if (!path.includes(neighbor)) {
-        queue.push({ country: neighbor, path: [...path, neighbor] });
-      }
+  // Reliable BFS shortest path (single optimal route). Treat borders as undirected.
+  if (origin === destination) {
+    return { countriesOnPath: new Set([origin]), optimalPath: [origin] };
+  }
+
+  const queue: string[] = [origin];
+  const visited = new Set<string>([origin]);
+  const prev = new Map<string, string | null>();
+  prev.set(origin, null);
+
+  const getNeighborsUndirected = (name: string): string[] => {
+    const direct = europeCountries.find((c) => c.name === name)?.neighbors ?? [];
+    const reverse = europeCountries
+      .filter((c) => c.neighbors.includes(name))
+      .map((c) => c.name);
+    return Array.from(new Set([...direct, ...reverse]));
+  };
+
+  while (queue.length) {
+    const current = queue.shift()!;
+    if (current === destination) break;
+
+    for (const neighbor of getNeighborsUndirected(current)) {
+      if (visited.has(neighbor)) continue;
+      visited.add(neighbor);
+      prev.set(neighbor, current);
+      queue.push(neighbor);
     }
   }
-  
-  return { countriesOnPath, optimalPath };
+
+  // Reconstruct path
+  if (!prev.has(destination)) {
+    return { countriesOnPath: new Set(), optimalPath: [] };
+  }
+
+  const optimalPath: string[] = [];
+  let node: string | null = destination;
+  while (node) {
+    optimalPath.push(node);
+    node = prev.get(node) ?? null;
+  }
+  optimalPath.reverse();
+
+  return { countriesOnPath: new Set(optimalPath), optimalPath };
 };
 
 const loadStats = (): Stats => {
@@ -153,7 +159,9 @@ export const useGameState = () => {
       return;
     }
 
-    const isOnPath = gameState.correctPath.includes(country.name);
+    const isOnPath = gameState.optimalPath.length > 0
+      ? gameState.optimalPath.includes(country.name)
+      : false;
     const newGuess: Guess = {
       country: country.name,
       isCorrect: country.name === gameState.destination.name,
@@ -161,19 +169,19 @@ export const useGameState = () => {
     };
 
     const newGuesses = [...gameState.guesses, newGuess];
-    
-    // Check if player has found a complete path from origin to destination
-    // They need to guess all countries on the optimal path EXCEPT the origin (which is given)
-    const guessedPathCountries = newGuesses
-      .filter(g => g.isOnPath)
-      .map(g => g.country);
-    
-    // Player must guess all countries on the optimal path except the origin
-    const countriesNeededToGuess = gameState.optimalPath.filter(c => c !== gameState.origin.name);
-    const allPathFound = countriesNeededToGuess.every(c => 
-      guessedPathCountries.includes(c)
+
+    // Player wins when they've guessed every country on the optimal route,
+    // excluding the origin (which is shown to them already).
+    const countriesNeededToGuess = gameState.optimalPath.filter(
+      (c) => c !== gameState.origin.name
     );
-    
+
+    const guessedCountries = new Set(newGuesses.map((g) => g.country));
+
+    const allPathFound =
+      countriesNeededToGuess.length > 0 &&
+      countriesNeededToGuess.every((c) => guessedCountries.has(c));
+
     const gameOver = allPathFound || newGuesses.length >= MAX_GUESSES;
     const won = allPathFound;
 
