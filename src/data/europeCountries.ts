@@ -98,27 +98,62 @@ const areNeighbors = (a: Country, b: Country): boolean => {
 // Minimum distance threshold for a good journey (about 1/3 of map width)
 const MIN_DISTANCE = 150;
 
-// Get valid country pairs that are far apart and not neighbors
+// Get undirected neighbors (treat borders as bidirectional even if data isn't perfectly symmetric)
+const getNeighborsUndirected = (name: string): string[] => {
+  const direct = europeCountries.find((c) => c.name === name)?.neighbors ?? [];
+  const reverse = europeCountries
+    .filter((c) => c.neighbors.includes(name))
+    .map((c) => c.name);
+  return Array.from(new Set([...direct, ...reverse]));
+};
+
+// Get the shortest path length between two countries (number of countries in route)
+const getShortestPathLength = (originName: string, destinationName: string): number => {
+  if (originName === destinationName) return 1;
+
+  const queue: Array<{ name: string; dist: number }> = [{ name: originName, dist: 1 }];
+  const visited = new Set<string>([originName]);
+
+  while (queue.length) {
+    const { name, dist } = queue.shift()!;
+
+    for (const neighbor of getNeighborsUndirected(name)) {
+      if (visited.has(neighbor)) continue;
+      if (neighbor === destinationName) return dist + 1;
+      visited.add(neighbor);
+      queue.push({ name: neighbor, dist: dist + 1 });
+    }
+  }
+
+  return Infinity;
+};
+
+// Get valid country pairs that are far apart, not neighbors, and result in a playable route
 const getValidPairs = (): Array<{ origin: Country; destination: Country }> => {
-  const countriesWithNeighbors = europeCountries.filter(c => c.neighbors.length > 0);
+  const countriesWithNeighbors = europeCountries.filter((c) => c.neighbors.length > 0);
   const validPairs: Array<{ origin: Country; destination: Country }> = [];
-  
+
   for (let i = 0; i < countriesWithNeighbors.length; i++) {
     for (let j = i + 1; j < countriesWithNeighbors.length; j++) {
       const a = countriesWithNeighbors[i];
       const b = countriesWithNeighbors[j];
-      
+
       // Skip if they're neighbors
       if (areNeighbors(a, b)) continue;
-      
+
       // Skip if they're too close
       if (getDistance(a, b) < MIN_DISTANCE) continue;
-      
+
+      // Skip if there's no land route or the route is too trivial
+      // Require at least 4 countries in the shortest route (origin + 2 steps + destination)
+      const shortestLen = getShortestPathLength(a.name, b.name);
+      if (!Number.isFinite(shortestLen) || shortestLen < 4) continue;
+
       validPairs.push({ origin: a, destination: b });
       validPairs.push({ origin: b, destination: a });
     }
   }
-  
+
   return validPairs;
 };
 
